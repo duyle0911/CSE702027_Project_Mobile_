@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/mo_hinh_chi_tieu.dart';
 import 'man_hinh_them_giao_dich.dart';
 import 'man_hinh_danh_sach_giao_dich.dart';
+import 'man_hinh_thong_ke.dart';
 
 class ManHinhTrangChu extends StatefulWidget {
   const ManHinhTrangChu({super.key});
@@ -19,20 +20,6 @@ class _ManHinhTrangChuState extends State<ManHinhTrangChu> {
       appBar: AppBar(
         title: const Text("💰 Quản lý chi tiêu cá nhân"),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.list),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      ManHinhDanhSachGiaoDich(danhSach: _danhSachGiaoDich),
-                ),
-              );
-            },
-          ),
-        ],
       ),
       body: Center(
         child: Column(
@@ -44,6 +31,8 @@ class _ManHinhTrangChuState extends State<ManHinhTrangChu> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 30),
+
+            // Nút thêm giao dịch
             ElevatedButton.icon(
               onPressed: () async {
                 final gd = await Navigator.push<GiaoDich>(
@@ -68,6 +57,40 @@ class _ManHinhTrangChuState extends State<ManHinhTrangChu> {
               },
               icon: const Icon(Icons.add_circle_outline),
               label: const Text("Thêm giao dịch mới"),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Nút xem danh sách giao dịch
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        ManHinhDanhSachGiaoDich(danhSach: _danhSachGiaoDich),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.list),
+              label: const Text("Xem danh sách"),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Nút xem thống kê
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        ManHinhThongKe(danhSach: _danhSachGiaoDich),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.bar_chart),
+              label: const Text("Xem thống kê"),
             ),
           ],
         ),
