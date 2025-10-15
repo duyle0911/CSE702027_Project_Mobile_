@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
+import '../models/mo_hinh_chi_tieu.dart';
 import 'man_hinh_them_giao_dich.dart';
+import 'man_hinh_danh_sach_giao_dich.dart';
 
-class ManHinhTrangChu extends StatelessWidget {
+class ManHinhTrangChu extends StatefulWidget {
   const ManHinhTrangChu({super.key});
+
+  @override
+  State<ManHinhTrangChu> createState() => _ManHinhTrangChuState();
+}
+
+class _ManHinhTrangChuState extends State<ManHinhTrangChu> {
+  final List<GiaoDich> _danhSachGiaoDich = [];
 
   @override
   Widget build(BuildContext context) {
@@ -10,6 +19,20 @@ class ManHinhTrangChu extends StatelessWidget {
       appBar: AppBar(
         title: const Text("💰 Quản lý chi tiêu cá nhân"),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.list),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      ManHinhDanhSachGiaoDich(danhSach: _danhSachGiaoDich),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Center(
         child: Column(
@@ -23,7 +46,7 @@ class ManHinhTrangChu extends StatelessWidget {
             const SizedBox(height: 30),
             ElevatedButton.icon(
               onPressed: () async {
-                final gd = await Navigator.push(
+                final gd = await Navigator.push<GiaoDich>(
                   context,
                   MaterialPageRoute(
                     builder: (context) => const ManHinhThemGiaoDich(),
@@ -31,20 +54,20 @@ class ManHinhTrangChu extends StatelessWidget {
                 );
 
                 if (gd != null) {
-                  print('Giao dịch mới: ${gd.danhMuc} - ${gd.soTien}');
+                  setState(() {
+                    _danhSachGiaoDich.add(gd);
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        "Đã thêm: ${gd.danhMuc} (${gd.soTien.toStringAsFixed(0)} ₫)",
+                      ),
+                    ),
+                  );
                 }
               },
               icon: const Icon(Icons.add_circle_outline),
               label: const Text("Thêm giao dịch mới"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
-                textStyle: const TextStyle(fontSize: 18),
-              ),
             ),
           ],
         ),
