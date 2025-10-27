@@ -1,4 +1,3 @@
-// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -54,17 +53,12 @@ class MyApp extends StatelessWidget {
           brightness: Brightness.light,
         ),
         scaffoldBackgroundColor: const Color(0xFFF7F9FC),
-
-        // Nếu bản Flutter của bạn chưa có InkSparkle hãy dùng InkRipple:
         splashFactory: InkSparkle.splashFactory,
-        // splashFactory: InkRipple.splashFactory,
-
         visualDensity: VisualDensity.adaptivePlatformDensity,
         appBarTheme: const AppBarTheme(
           centerTitle: true,
           elevation: 0,
         ),
-
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: Colors.white,
@@ -83,15 +77,11 @@ class MyApp extends StatelessWidget {
             borderSide: const BorderSide(color: seed, width: 1.4),
           ),
         ),
-
-        // CardTheme chuẩn, không dùng surfaceTintColor để tránh kén phiên bản
         cardTheme: const CardThemeData(
           elevation: 2,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(16)),
           ),
-          // Nếu IDE cho phép, có thể thêm:
-          // color: Colors.white,
         ),
       ),
       initialRoute: '/',

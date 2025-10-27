@@ -28,8 +28,7 @@ class ProfileScreen extends StatelessWidget {
     if (ok == true) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('username');
-      // Quay về màn đăng nhập và xoá back stack
-      // ignore: use_build_context_synchronously
+
       Navigator.of(context)
           .pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);
     }
