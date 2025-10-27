@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/expense_model.dart';
-import 'login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -29,12 +28,10 @@ class ProfileScreen extends StatelessWidget {
     if (ok == true) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('username');
-
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-        (route) => false,
-      );
+      // Quay về màn đăng nhập và xoá back stack
+      // ignore: use_build_context_synchronously
+      Navigator.of(context)
+          .pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);
     }
   }
 
@@ -102,9 +99,7 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
           ),
-
           const SizedBox(height: 12),
-
           Row(
             children: [
               Expanded(
@@ -126,13 +121,9 @@ class ProfileScreen extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: 12),
-
           _BalanceTile(balance: currency.format(m.balance)),
-
           const SizedBox(height: 20),
-
           Card(
             elevation: 1,
             shape: RoundedRectangleBorder(
@@ -142,37 +133,24 @@ class ProfileScreen extends StatelessWidget {
               children: [
                 ListTile(
                   leading: const Icon(Icons.lock_reset),
-                  title: const Text('Đổi mật khẩu (demo)'),
-                  subtitle: const Text(
-                    'Tính năng minh hoạ – tuỳ chỉnh khi có backend',
-                  ),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Chức năng demo: chưa triển khai'),
-                      ),
-                    );
-                  },
+                  title: const Text('Đổi mật khẩu'),
+                  subtitle: const Text('Thiết lập/đổi mật khẩu đăng nhập'),
+                  onTap: () => Navigator.pushNamed(context, '/change-password'),
                 ),
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.settings),
                   title: const Text('Cài đặt (demo)'),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Chức năng demo: chưa triển khai'),
-                      ),
-                    );
-                  },
+                  onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Chức năng demo: chưa triển khai')),
+                  ),
                 ),
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.logout, color: Colors.red),
-                  title: const Text(
-                    'Đăng xuất',
-                    style: TextStyle(color: Colors.redAccent),
-                  ),
+                  title: const Text('Đăng xuất',
+                      style: TextStyle(color: Colors.redAccent)),
                   onTap: () => _confirmLogout(context),
                 ),
               ],
@@ -219,9 +197,7 @@ class _StatTile extends StatelessWidget {
                   Text(
                     value,
                     style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
+                        fontSize: 16, fontWeight: FontWeight.w700),
                   ),
                 ],
               ),
@@ -246,10 +222,8 @@ class _BalanceTile extends StatelessWidget {
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: theme.colorScheme.primary.withOpacity(0.12),
-          child: Icon(
-            Icons.account_balance_wallet,
-            color: theme.colorScheme.primary,
-          ),
+          child: Icon(Icons.account_balance_wallet,
+              color: theme.colorScheme.primary),
         ),
         title: const Text('Số dư hiện tại'),
         subtitle: const Text('Thu - Chi'),

@@ -1,3 +1,4 @@
+// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +11,7 @@ import 'screens/statistics_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/transaction_list_screen.dart';
+import 'screens/change_password_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,15 +55,16 @@ class MyApp extends StatelessWidget {
         ),
         scaffoldBackgroundColor: const Color(0xFFF7F9FC),
 
-        // Nếu IDE báo lỗi InkSparkle, đổi dòng dưới thành:
-        // splashFactory: InkRipple.splashFactory,
+        // Nếu bản Flutter của bạn chưa có InkSparkle hãy dùng InkRipple:
         splashFactory: InkSparkle.splashFactory,
+        // splashFactory: InkRipple.splashFactory,
 
         visualDensity: VisualDensity.adaptivePlatformDensity,
         appBarTheme: const AppBarTheme(
           centerTitle: true,
           elevation: 0,
         ),
+
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: Colors.white,
@@ -81,13 +84,14 @@ class MyApp extends StatelessWidget {
           ),
         ),
 
-        // ✅ SỬA Ở ĐÂY: dùng CardThemeData thay cho CardTheme
+        // CardTheme chuẩn, không dùng surfaceTintColor để tránh kén phiên bản
         cardTheme: const CardThemeData(
-          color: Colors.white,
           elevation: 2,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(16)),
           ),
+          // Nếu IDE cho phép, có thể thêm:
+          // color: Colors.white,
         ),
       ),
       initialRoute: '/',
@@ -104,6 +108,7 @@ class MyApp extends StatelessWidget {
               },
             ),
         '/transactions': (context) => const TransactionListScreen(),
+        '/change-password': (context) => const ChangePasswordScreen(),
       },
       onUnknownRoute: (_) =>
           MaterialPageRoute(builder: (_) => const HomePage()),
