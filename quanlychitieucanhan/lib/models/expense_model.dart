@@ -1,205 +1,111 @@
-// lib/models/expense_model.dart
-import 'dart:collection';
 import 'package:flutter/foundation.dart';
 
-enum LoaiGiaoDich { thu, chi }
-
-class GiaoDich {
+class TransactionItem {
   final String id;
-  final LoaiGiaoDich loai;
-  final double soTien;
-  final String ghiChu;
-  final String danhMuc;
-  final DateTime thoiGian;
+  final String type; // 'income' | 'expense'
+  final double amount;
+  final String note;
+  final String category;
+  final DateTime date;
 
-  const GiaoDich({
+  const TransactionItem({
     required this.id,
-    required this.loai,
-    required this.soTien,
-    required this.ghiChu,
-    required this.danhMuc,
-    required this.thoiGian,
+    required this.type,
+    required this.amount,
+    required this.note,
+    required this.category,
+    required this.date,
   });
-
-  GiaoDich copyWith({
-    String? id,
-    LoaiGiaoDich? loai,
-    double? soTien,
-    String? ghiChu,
-    String? danhMuc,
-    DateTime? thoiGian,
-  }) {
-    return GiaoDich(
-      id: id ?? this.id,
-      loai: loai ?? this.loai,
-      soTien: soTien ?? this.soTien,
-      ghiChu: ghiChu ?? this.ghiChu,
-      danhMuc: danhMuc ?? this.danhMuc,
-      thoiGian: thoiGian ?? this.thoiGian,
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'loai': loai.name,
-        'soTien': soTien,
-        'ghiChu': ghiChu,
-        'danhMuc': danhMuc,
-        'thoiGian': thoiGian.toIso8601String(),
-      };
-
-  factory GiaoDich.fromJson(Map<String, dynamic> json) {
-    return GiaoDich(
-      id: json['id'] as String,
-      loai: (json['loai'] as String) == 'thu'
-          ? LoaiGiaoDich.thu
-          : LoaiGiaoDich.chi,
-      soTien: (json['soTien'] as num).toDouble(),
-      ghiChu: json['ghiChu'] as String,
-      danhMuc: json['danhMuc'] as String,
-      thoiGian: DateTime.parse(json['thoiGian'] as String),
-    );
-  }
-
-  // Alias thuận tiện cho UI
-  String get type => loai == LoaiGiaoDich.thu ? 'income' : 'expense';
-  double get amount => soTien;
-  String get note => ghiChu;
-  String get category => danhMuc;
-  DateTime get date => thoiGian;
 }
 
-// 👉 typedef để các widget dùng kiểu này
-typedef TransactionItem = GiaoDich;
-
 class ExpenseModel extends ChangeNotifier {
-  double _tongThu = 0;
-  double _tongChi = 0;
-  final List<GiaoDich> _dsGiaoDich = [];
+  final List<TransactionItem> _transactions = [];
 
-  final Set<String> _danhMucThu = {'Lương', 'Thưởng', 'Quà tặng'};
-  final Set<String> _danhMucChi = {'Ăn uống', 'Đi lại', 'Mua sắm', 'Hóa đơn'};
+  double get income => _transactions
+      .where((t) => t.type == 'income')
+      .fold(0, (s, t) => s + t.amount);
 
-  // --- Getters “mới” mà các màn hình đang gọi
-  double get income => _tongThu;
-  double get expense => _tongChi;
-  double get balance => _tongThu - _tongChi;
+  double get expense => _transactions
+      .where((t) => t.type == 'expense')
+      .fold(0, (s, t) => s + t.amount);
 
-  UnmodifiableListView<GiaoDich> get giaoDichs =>
-      UnmodifiableListView(_dsGiaoDich);
+  double get balance => income - expense;
 
-  // Cho code cũ đang dùng
-  List<GiaoDich> get transactions => giaoDichs;
+  List<TransactionItem> get transactions => List.unmodifiable(_transactions);
 
-  List<String> get incomeCategories => List.unmodifiable(_danhMucThu);
-  List<String> get expenseCategories => List.unmodifiable(_danhMucChi);
+  final List<String> _incomeCategories = ['Lương', 'Thưởng', 'Khác'];
+  final List<String> _expenseCategories = [
+    'Ăn uống',
+    'Đi lại',
+    'Hóa đơn',
+    'Mua sắm'
+  ];
 
-  // --- Danh mục
-  bool addIncomeCategory(String name) {
-    final t = name.trim();
-    if (t.isEmpty) return false;
-    final ok = _danhMucThu.add(t);
-    if (ok) notifyListeners();
-    return ok;
+  List<String> get incomeCategories => List.unmodifiable(_incomeCategories);
+  List<String> get expenseCategories => List.unmodifiable(_expenseCategories);
+
+  void addIncomeCategory(String name) {
+    if (!_incomeCategories.contains(name)) {
+      _incomeCategories.add(name);
+      notifyListeners();
+    }
   }
 
-  bool addExpenseCategory(String name) {
-    final t = name.trim();
-    if (t.isEmpty) return false;
-    final ok = _danhMucChi.add(t);
-    if (ok) notifyListeners();
-    return ok;
+  void addExpenseCategory(String name) {
+    if (!_expenseCategories.contains(name)) {
+      _expenseCategories.add(name);
+      notifyListeners();
+    }
   }
 
-  // --- Giao dịch
-  String _genId() => DateTime.now().microsecondsSinceEpoch.toString();
-
+  // ✅ Cho phép truyền ngày (tùy chọn)
   void addIncome(double amount, String note, String category,
-      [DateTime? date]) {
-    if (amount <= 0) return;
-    final gd = GiaoDich(
-      id: _genId(),
-      loai: LoaiGiaoDich.thu,
-      soTien: amount,
-      ghiChu: note,
-      danhMuc: category,
-      thoiGian: date ?? DateTime.now(),
-    );
-    _dsGiaoDich.add(gd);
-    _tongThu += amount;
+      {DateTime? date}) {
+    _transactions.add(TransactionItem(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      type: 'income',
+      amount: amount,
+      note: note,
+      category: category,
+      date: date ?? DateTime.now(),
+    ));
     notifyListeners();
   }
 
+  // ✅ Cho phép truyền ngày (tùy chọn)
   void addExpense(double amount, String note, String category,
-      [DateTime? date]) {
-    if (amount <= 0) return;
-    final gd = GiaoDich(
-      id: _genId(),
-      loai: LoaiGiaoDich.chi,
-      soTien: amount,
-      ghiChu: note,
-      danhMuc: category,
-      thoiGian: date ?? DateTime.now(),
-    );
-    _dsGiaoDich.add(gd);
-    _tongChi += amount;
+      {DateTime? date}) {
+    _transactions.add(TransactionItem(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      type: 'expense',
+      amount: amount,
+      note: note,
+      category: category,
+      date: date ?? DateTime.now(),
+    ));
     notifyListeners();
   }
 
+  // ✅ Thêm wrapper để các màn hình cũ gọi không lỗi
   void addTransaction({
-    required String type,
+    required String type, // 'income' | 'expense'
     required double amount,
     required String note,
     required String category,
     DateTime? date,
   }) {
     if (type == 'income') {
-      addIncome(amount, note, category, date);
+      addIncome(amount, note, category, date: date);
     } else {
-      addExpense(amount, note, category, date);
+      addExpense(amount, note, category, date: date);
     }
   }
 
   double totalAmount({required String type, String? category}) {
-    final loai = type == 'income' ? LoaiGiaoDich.thu : LoaiGiaoDich.chi;
-    return _dsGiaoDich.where((t) {
-      final okLoai = t.loai == loai;
-      final okCat = category == null || t.danhMuc == category;
-      return okLoai && okCat;
-    }).fold(0.0, (s, e) => s + e.soTien);
-  }
-
-  bool capNhatGiaoDich(String id, GiaoDich moi) {
-    final idx = _dsGiaoDich.indexWhere((e) => e.id == id);
-    if (idx == -1) return false;
-
-    final cu = _dsGiaoDich[idx];
-    if (cu.loai == LoaiGiaoDich.thu) _tongThu -= cu.soTien;
-    if (cu.loai == LoaiGiaoDich.chi) _tongChi -= cu.soTien;
-
-    _dsGiaoDich[idx] = moi.copyWith(id: id);
-
-    if (moi.loai == LoaiGiaoDich.thu) _tongThu += moi.soTien;
-    if (moi.loai == LoaiGiaoDich.chi) _tongChi += moi.soTien;
-
-    notifyListeners();
-    return true;
-  }
-
-  bool xoaGiaoDich(String id) {
-    final idx = _dsGiaoDich.indexWhere((e) => e.id == id);
-    if (idx == -1) return false;
-    final g = _dsGiaoDich.removeAt(idx);
-    if (g.loai == LoaiGiaoDich.thu) _tongThu -= g.soTien;
-    if (g.loai == LoaiGiaoDich.chi) _tongChi -= g.soTien;
-    notifyListeners();
-    return true;
-  }
-
-  void xoaTatCa() {
-    _dsGiaoDich.clear();
-    _tongThu = 0;
-    _tongChi = 0;
-    notifyListeners();
+    return _transactions.where((t) {
+      final matchType = t.type == type;
+      final matchCategory = category == null || t.category == category;
+      return matchType && matchCategory;
+    }).fold(0, (sum, t) => sum + t.amount);
   }
 }

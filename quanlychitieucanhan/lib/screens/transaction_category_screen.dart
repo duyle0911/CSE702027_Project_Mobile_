@@ -4,7 +4,7 @@ import '../models/expense_model.dart';
 import 'transaction_entry_screen.dart';
 
 class TransactionCategoryScreen extends StatefulWidget {
-  final String type;
+  final String type; // 'income' | 'expense'
   const TransactionCategoryScreen({super.key, required this.type});
 
   @override
@@ -46,18 +46,33 @@ class _TransactionCategoryScreenState extends State<TransactionCategoryScreen> {
             onPressed: () {
               final text = controller.text.trim();
               if (text.isEmpty) return;
+
               final model = context.read<ExpenseModel>();
-              final ok = _isIncome
-                  ? model.addIncomeCategory(text)
-                  : model.addExpenseCategory(text);
+              final current =
+                  _isIncome ? model.incomeCategories : model.expenseCategories;
+
+              final exists = current
+                  .map((e) => e.toLowerCase())
+                  .contains(text.toLowerCase());
+
               Navigator.pop(context);
 
+              if (exists) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Danh mục đã tồn tại: $text')),
+                );
+                return;
+              }
+
+              // Gọi hàm thêm (không cần giá trị trả về)
+              if (_isIncome) {
+                model.addIncomeCategory(text);
+              } else {
+                model.addExpenseCategory(text);
+              }
+
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    ok ? 'Đã thêm: $text' : 'Danh mục đã tồn tại: $text',
-                  ),
-                ),
+                SnackBar(content: Text('Đã thêm: $text')),
               );
               setState(() {});
             },
@@ -90,25 +105,38 @@ class _TransactionCategoryScreenState extends State<TransactionCategoryScreen> {
           FilledButton(
             onPressed: () {
               final newName = controller.text.trim();
-              if (newName.isEmpty || newName == oldName) {
+              if (newName.isEmpty ||
+                  newName.toLowerCase() == oldName.toLowerCase()) {
                 Navigator.pop(context);
                 return;
               }
 
               final model = context.read<ExpenseModel>();
-              final ok = _isIncome
-                  ? model.addIncomeCategory(newName)
-                  : model.addExpenseCategory(newName);
+              final current =
+                  _isIncome ? model.incomeCategories : model.expenseCategories;
+
+              final exists = current
+                  .map((e) => e.toLowerCase())
+                  .contains(newName.toLowerCase());
 
               Navigator.pop(context);
+
+              if (exists) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Danh mục đã tồn tại: $newName')),
+                );
+                return;
+              }
+
+              // Demo: thêm tên mới (chưa xoá tên cũ để tránh mất dữ liệu lịch sử)
+              if (_isIncome) {
+                model.addIncomeCategory(newName);
+              } else {
+                model.addExpenseCategory(newName);
+              }
+
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    ok
-                        ? 'Đã thêm danh mục mới: $newName'
-                        : 'Danh mục đã tồn tại: $newName',
-                  ),
-                ),
+                SnackBar(content: Text('Đã thêm danh mục mới: $newName')),
               );
               setState(() {});
             },
@@ -193,7 +221,6 @@ class _TransactionCategoryScreenState extends State<TransactionCategoryScreen> {
               onChanged: (_) => setState(() {}),
             ),
           ),
-
           Expanded(
             child: filtered.isEmpty
                 ? const Center(child: Text('Không có danh mục phù hợp'))
