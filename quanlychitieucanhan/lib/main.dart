@@ -3,7 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// i18n
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'l10n/app_localizations.dart';
+
 import 'models/expense_model.dart';
+import 'models/app_lang.dart'; // 👈 thêm: model đổi ngôn ngữ
+
 import 'screens/home_screen.dart';
 import 'screens/transaction_screen.dart';
 import 'screens/statistics_screen.dart';
@@ -22,9 +28,16 @@ void main() async {
     ),
   );
 
+  // 👇 load ngôn ngữ đã lưu
+  final appLang = AppLang();
+  await appLang.load();
+
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ExpenseModel(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ExpenseModel()),
+        ChangeNotifierProvider(create: (_) => appLang),
+      ],
       child: const MyApp(),
     ),
   );
@@ -43,6 +56,17 @@ class MyApp extends StatelessWidget {
     const seed = Color(0xFF0A84FF);
 
     return MaterialApp(
+      // 🔤 Bật i18n cho toàn app
+      locale: context.watch<AppLang>().locale, // 👈 nhận locale đang chọn
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('vi'), Locale('en')],
+      // locale: const Locale('vi'), // (tuỳ chọn) ép mặc định
+
       title: 'Quản Lý Chi Tiêu',
       debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.light,
@@ -77,6 +101,7 @@ class MyApp extends StatelessWidget {
             borderSide: const BorderSide(color: seed, width: 1.4),
           ),
         ),
+        // ✅ cardTheme dùng CardTheme (không phải CardThemeData)
         cardTheme: const CardThemeData(
           elevation: 2,
           shape: RoundedRectangleBorder(
@@ -124,6 +149,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!; // shorthand
+
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
@@ -134,26 +161,26 @@ class _HomePageState extends State<HomePage> {
           selectedIndex: _index,
           onDestinationSelected: (i) => setState(() => _index = i),
           labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          destinations: const [
+          destinations: [
             NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home),
-              label: 'Trang chủ',
+              icon: const Icon(Icons.home_outlined),
+              selectedIcon: const Icon(Icons.home),
+              label: t.navHome,
             ),
             NavigationDestination(
-              icon: Icon(Icons.add_circle_outline),
-              selectedIcon: Icon(Icons.add_circle),
-              label: 'Giao dịch',
+              icon: const Icon(Icons.add_circle_outline),
+              selectedIcon: const Icon(Icons.add_circle),
+              label: t.navTransactions,
             ),
             NavigationDestination(
-              icon: Icon(Icons.bar_chart_outlined),
-              selectedIcon: Icon(Icons.bar_chart),
-              label: 'Thống kê',
+              icon: const Icon(Icons.bar_chart_outlined),
+              selectedIcon: const Icon(Icons.bar_chart),
+              label: t.navStats,
             ),
             NavigationDestination(
-              icon: Icon(Icons.person_outline),
-              selectedIcon: Icon(Icons.person),
-              label: 'Cá nhân',
+              icon: const Icon(Icons.person_outline),
+              selectedIcon: const Icon(Icons.person),
+              label: t.navProfile,
             ),
           ],
         ),

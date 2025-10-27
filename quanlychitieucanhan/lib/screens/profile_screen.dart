@@ -2,25 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../models/expense_model.dart';
+import '../models/app_lang.dart';
+import '../l10n/app_localizations.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   Future<void> _confirmLogout(BuildContext context) async {
+    final t = AppLocalizations.of(context)!;
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Đăng xuất'),
-        content: const Text('Bạn có chắc muốn đăng xuất khỏi ứng dụng?'),
+        title: Text(t.confirmLogoutTitle),
+        content: Text(t.confirmLogoutMsg),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Huỷ'),
+            child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Đăng xuất'),
+            child: Text(t.logout),
           ),
         ],
       ),
@@ -29,23 +33,25 @@ class ProfileScreen extends StatelessWidget {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('username');
 
-      Navigator.of(context)
-          .pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);
+      Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final m = context.watch<ExpenseModel>();
+
+    final locale = Localizations.localeOf(context).toString();
     final currency = NumberFormat.currency(
-      locale: 'vi_VN',
-      symbol: '₫',
+      locale: locale,
+      symbol: locale.startsWith('vi') ? '₫' : 'VND',
       decimalDigits: 0,
     );
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cá nhân'),
+        title: Text(t.navProfile),
         centerTitle: true,
         backgroundColor: Colors.purple,
       ),
@@ -72,8 +78,11 @@ class ProfileScreen extends StatelessWidget {
                       future: SharedPreferences.getInstance(),
                       builder: (context, snap) {
                         final username = snap.hasData
-                            ? (snap.data!.getString('username') ?? 'Người dùng')
-                            : 'Người dùng';
+                            ? (snap.data!.getString('username') ??
+                                (locale.startsWith('vi')
+                                    ? 'Người dùng'
+                                    : 'User'))
+                            : (locale.startsWith('vi') ? 'Người dùng' : 'User');
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -86,7 +95,9 @@ class ProfileScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              'Quản lý chi tiêu cá nhân',
+                              locale.startsWith('vi')
+                                  ? 'Quản lý chi tiêu cá nhân'
+                                  : 'Personal expense manager',
                               style: TextStyle(color: Colors.grey.shade600),
                             ),
                           ],
@@ -103,7 +114,7 @@ class ProfileScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: _StatTile(
-                  label: 'Tổng thu',
+                  label: t.income,
                   value: currency.format(m.income),
                   icon: Icons.trending_up,
                   color: Colors.green,
@@ -112,7 +123,7 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: _StatTile(
-                  label: 'Tổng chi',
+                  label: t.expense,
                   value: currency.format(m.expense),
                   icon: Icons.trending_down,
                   color: Colors.redAccent,
@@ -121,7 +132,11 @@ class ProfileScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          _BalanceTile(balance: currency.format(m.balance)),
+          _BalanceTile(
+            balance: currency.format(m.balance),
+            subtitle: "${t.income} - ${t.expense}",
+            title: t.balance,
+          ),
           const SizedBox(height: 20),
           Card(
             elevation: 1,
@@ -132,24 +147,54 @@ class ProfileScreen extends StatelessWidget {
               children: [
                 ListTile(
                   leading: const Icon(Icons.lock_reset),
-                  title: const Text('Đổi mật khẩu'),
-                  subtitle: const Text('Thiết lập/đổi mật khẩu đăng nhập'),
+                  title: Text(locale.startsWith('vi')
+                      ? 'Đổi mật khẩu'
+                      : 'Change password'),
+                  subtitle: Text(locale.startsWith('vi')
+                      ? 'Thiết lập/đổi mật khẩu đăng nhập'
+                      : 'Set/change the login password'),
                   onTap: () => Navigator.pushNamed(context, '/change-password'),
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  leading: const Icon(Icons.language),
+                  title: Text(t.language),
+                  trailing: DropdownButton<String>(
+                    value:
+                        (context.watch<AppLang>().locale ?? const Locale('vi'))
+                            .languageCode,
+                    items: [
+                      DropdownMenuItem(value: 'vi', child: Text(t.languageVi)),
+                      DropdownMenuItem(value: 'en', child: Text(t.languageEn)),
+                    ],
+                    onChanged: (code) {
+                      if (code != null) {
+                        context.read<AppLang>().setLocale(code);
+                      }
+                    },
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(Icons.settings),
-                  title: const Text('Cài đặt (demo)'),
+                  title: Text(t.settings),
                   onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('Chức năng demo: chưa triển khai')),
+                    SnackBar(
+                      content: Text(
+                        locale.startsWith('vi')
+                            ? 'Chức năng demo: chưa triển khai'
+                            : 'Demo feature: not implemented yet',
+                      ),
+                    ),
                   ),
                 ),
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.logout, color: Colors.red),
-                  title: const Text('Đăng xuất',
-                      style: TextStyle(color: Colors.redAccent)),
+                  title: Text(
+                    t.logout,
+                    style: const TextStyle(color: Colors.redAccent),
+                  ),
                   onTap: () => _confirmLogout(context),
                 ),
               ],
@@ -196,7 +241,9 @@ class _StatTile extends StatelessWidget {
                   Text(
                     value,
                     style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w700),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ],
               ),
@@ -210,7 +257,13 @@ class _StatTile extends StatelessWidget {
 
 class _BalanceTile extends StatelessWidget {
   final String balance;
-  const _BalanceTile({required this.balance});
+  final String title;
+  final String subtitle;
+  const _BalanceTile({
+    required this.balance,
+    required this.title,
+    required this.subtitle,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -224,8 +277,8 @@ class _BalanceTile extends StatelessWidget {
           child: Icon(Icons.account_balance_wallet,
               color: theme.colorScheme.primary),
         ),
-        title: const Text('Số dư hiện tại'),
-        subtitle: const Text('Thu - Chi'),
+        title: Text(title),
+        subtitle: Text(subtitle),
         trailing: Text(
           balance,
           style: TextStyle(

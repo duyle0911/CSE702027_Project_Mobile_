@@ -11,6 +11,11 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # i18n (đa ngôn ngữ)
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2   # khớp SDK
+
   # State management
   provider: ^6.1.2
 
@@ -19,9 +24,6 @@ dependencies:
 
   # Charts
   fl_chart: ^0.68.0
-
-  # Currency/date formatting (vi_VN)
-  intl: ^0.19.0
 
   # Icons (iOS style)
   cupertino_icons: ^1.0.8
@@ -36,16 +38,13 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  generate: true
 
   # Khai báo assets cho hình ảnh giao diện
   assets:
     - assets/img/
-    # Ví dụ:
-    # - assets/img/hero_wallet.png
-    # - assets/img/empty_state.png
-    # - assets/img/logo.png
 
-  # (Tuỳ chọn) nếu bạn thêm font tuỳ chỉnh, mở comment phần dưới và trỏ tới file .ttf
+  # (Tuỳ chọn) fonts…
   # fonts:
   #   - family: Inter
   #     fonts:
